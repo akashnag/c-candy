@@ -1,7 +1,7 @@
 /*
  * SPDX-License-Identifier: GPL-2.0-only
  *
- * easyds/src/str.c
+ * c-candy/src/str.c
  *
  * (C) Copyright 2021 Akash Nag
  *

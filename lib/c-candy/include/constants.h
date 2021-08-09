@@ -1,7 +1,7 @@
 /*
  * SPDX-License-Identifier: GPL-2.0-only
  *
- * easyds/include/constants.h
+ * c-candy/include/constants.h
  *
  * (C) Copyright 2021 Akash Nag
  *
