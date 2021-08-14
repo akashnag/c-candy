@@ -27,7 +27,6 @@
 #include <constants.h>
 
 /* other constants */
-#define STRING_CANDY_VERSION			"0.1.0-alpha"
 #define STR_SIZE 						sizeof(STRING)
 
 #ifdef __cplusplus
@@ -37,10 +36,16 @@ extern "C" {
 /* definition of STRING object */
 typedef struct {
 	char *data;
-	int length;
+	unsigned int length;
 } STRING;
 
 /* <------------------------------ function declarations --------------------------------> */
+
+/*
+ * dump_str() -	Frees memory allocated for the string object
+ * @sobj:		the string to free
+ */
+void dump_str(STRING *sobj);
 
 /*
  * str_blank() - Creates a blank string
@@ -58,12 +63,20 @@ STRING* str_blank();
 STRING* str(const char *s);
 
 /*
+ * str_copy() -	Returns a copy of the given string
+ * @s: 			the string object to copy
+ *
+ * Returns a copy of the STRING object
+ */
+STRING* str_copy(const STRING *s);
+
+/*
  * str_len() - 	Computes the length of a string
  * @sobj: 		string object whose length is to be returned
  *
  * Returns the length in number of characters of a string object
  */
-int str_len(const STRING* sobj);
+unsigned int str_len(const STRING* sobj);
 
 /*
  * cstr() - Converts STRING object to a C-style string constant
@@ -72,6 +85,15 @@ int str_len(const STRING* sobj);
  * Returns a C-style string constant
  */
 char* cstr(const STRING *sobj);
+
+/*
+ * str_is_char_in() -	Checks if a character is in the string
+ * @sobj: 				the string to check in
+ * @c:					the character to search for
+ *
+ * Returns TRUE if the character is in the given string
+ */
+BOOL str_is_char_in(const STRING *sobj, char c);
 
 /*
  * str_append() - 	Appends a suffix to the end of the given string and modifies it in-place
@@ -139,7 +161,7 @@ STRING* str_reverse(const STRING *sobj);
  *
  * Returns the center-justified string
  */
-STRING* str_center(const STRING *sobj, int length, char pad_char);
+STRING* str_center(const STRING *sobj, unsigned int length, char pad_char);
 
 /*
  * str_ljust() -	Left justifies a string in a fixed-width column by padding on the right with a given character
@@ -149,7 +171,7 @@ STRING* str_center(const STRING *sobj, int length, char pad_char);
  *
  * Returns the left-justified string
  */
-STRING* str_ljust(const STRING *sobj, int length, char pad_char);
+STRING* str_ljust(const STRING *sobj, unsigned int length, char pad_char);
 
 /*
  * str_rjust() -	Right justifies a string in a fixed-width column by padding on the left with a given character
@@ -159,7 +181,7 @@ STRING* str_ljust(const STRING *sobj, int length, char pad_char);
  *
  * Returns the right-justified string
  */
-STRING* str_rjust(const STRING *sobj, int length, char pad_char);
+STRING* str_rjust(const STRING *sobj, unsigned int length, char pad_char);
 
 /*
  * str_strip()	-	Removes any leading and trailing whitespaces from a string
@@ -193,6 +215,16 @@ STRING* str_rstrip(const STRING *sobj);
  * Returns the character in the string at the given index
  */
 char str_char_at(const STRING *sobj, int index);
+
+/*
+ * str_cfmt() -	Returns the string representation of a format string
+ * @max_len		expected maximum length of the string
+ * @format:		the format string
+ * ...			0 or more arguments
+ *
+ * Returns a string representation of the arguments
+ */
+STRING* str_cfmt(int max_len, const char *format, ...);
 
 /* 
  * str_count() - 	Counts the number of occurrences of a string in another string
@@ -228,7 +260,7 @@ BOOL str_ends_with(const STRING *sobj, const STRING *suffix);
  *
  * Returns the expanded string
  */
-STRING* str_expand_tabs(const STRING *sobj, int tab_size);
+STRING* str_expand_tabs(const STRING *sobj, unsigned int tab_size);
 
 /*
  * str_find() -	Finds the index of the first occurrence of a string in another string
@@ -382,7 +414,7 @@ int str_split_whitespace(const STRING *sobj, int max_split, STRING **parts);
  *
  * Returns the zero-padded string
  */
-STRING* str_zfill(const STRING *sobj, int length);
+STRING* str_zfill(const STRING *sobj, unsigned int length);
 
 /*
  * swap_case() -	Changes lowercase characters to uppercase and vice-versa
@@ -407,7 +439,7 @@ STRING* str_title(const STRING *sobj);
  *
  * Returns the modified string
  */
-STRING* str_chop(const STRING *sobj, int num_chars_left, int num_chars_right);
+STRING* str_chop(const STRING *sobj, unsigned int num_chars_left, unsigned int num_chars_right);
 
 /*
  * str_equals() -	Checks if two strings are equal (case sensitive)  or not

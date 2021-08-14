@@ -24,13 +24,15 @@
 
 #define CONSTANTS_H
 
+/* Version */
+#define C_CANDY_VERSION					"0.1.0-alpha"
+
 /* Error constants */
 #define ERR_MEM_ALLOC				 	-2
-#define ERR_NULL_STR					-3
-#define ERR_STR_INDEX_OUT_OF_BOUNDS		-4
+#define ERR_NULL_OBJECT					-3
+#define ERR_INDEX_OUT_OF_BOUNDS			-4
 #define ERR_BAD_REGEX					-5
-#define ERR_NULL_LIST					-6
-#define ERR_LIST_INDEX_OUT_OF_BOUNDS	-7
+#define ERR_TYPE_MISMATCH				-6
 
 /* definition of BOOL (boolean) */
 typedef enum {

@@ -20,6 +20,7 @@
  */
 
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 #include <regex.h>
 #include <constants.h>
@@ -45,9 +46,9 @@ static STRING* copy(const STRING *sobj, int length, int dest_start, int src_star
 	STRING *sres;
 	int i;
 
-	if(sobj == NULL || length < 0) return ERR_NULL_STR;
-	if(src_start < 0 || src_end > sobj->length) return ERR_STR_INDEX_OUT_OF_BOUNDS;
-	if(dest_start + (src_end - src_start) - 1 >= length) return ERR_STR_INDEX_OUT_OF_BOUNDS;
+	if(sobj == NULL || length < 0) return ERR_NULL_OBJECT;
+	if(src_start < 0 || src_end > sobj->length) return ERR_INDEX_OUT_OF_BOUNDS;
+	if(dest_start + (src_end - src_start) - 1 >= length) return ERR_INDEX_OUT_OF_BOUNDS;
 	
 	sres = (STRING*)malloc(STR_SIZE);
 	if(sres == NULL) return ERR_MEM_ALLOC;
@@ -155,6 +156,16 @@ static int strcmpi(const char *s1, const char *s2)
 
 /* <------------------ public function definitions ------------------> */
 
+/* Frees memory allocated for the string object */
+void dump_str(STRING *sobj)
+{
+	if(sobj != NULL)
+	{
+		free(sobj->data);
+		free(sobj);
+	}
+}
+
 /* Creates an empty STRING object */
 STRING* str_blank()
 {
@@ -188,10 +199,16 @@ STRING* str(const char *s)
 	return sobj;
 }
 
-/* Returns the number of characters in a string */
-int str_len(const STRING *sobj)
+/* copies a string object */
+STRING* str_copy(const STRING *s)
 {
-	if(sobj == NULL) return ERR_NULL_STR;
+	return exact_copy(s);
+}
+
+/* Returns the number of characters in a string */
+unsigned int str_len(const STRING *sobj)
+{
+	if(sobj == NULL) return ERR_NULL_OBJECT;
 	return sobj->length;
 }
 
@@ -200,7 +217,7 @@ char* cstr(const STRING *sobj)
 {
 	char *scopy;
 
-	if(sobj == NULL) return ERR_NULL_STR;
+	if(sobj == NULL) return ERR_NULL_OBJECT;
 
 	scopy = (char*)calloc(sobj->length + 1, sizeof(char));
 	if(scopy == NULL) return ERR_MEM_ALLOC;
@@ -212,13 +229,19 @@ char* cstr(const STRING *sobj)
 /* Returns the character in a string (sobj) at a particular index */
 char str_char_at(const STRING *sobj, int index)
 {
-	if(sobj == NULL) return ERR_NULL_STR;
+	if(sobj == NULL) return ERR_NULL_OBJECT;
 
 	/* convert negative to positive index */
 	if(index < 0) index += sobj->length;
 	
-	if(index < 0 || index >= sobj->length) return ERR_STR_INDEX_OUT_OF_BOUNDS;
+	if(index < 0 || index >= sobj->length) return ERR_INDEX_OUT_OF_BOUNDS;
 	return sobj->data[index];
+}
+
+/* Returns TRUE if the given character is in the string */
+BOOL str_is_char_in(const STRING *sobj, char c)
+{
+	return is_char_in(c, cstr(sobj));
 }
 
 /* Returns TRUE if a string (sobj) starts with another string (prefix) */
@@ -226,7 +249,7 @@ BOOL str_starts_with(const STRING *sobj, const STRING *prefix)
 {
 	unsigned int i, plen;
 
-	if(sobj == NULL || prefix == NULL) return ERR_NULL_STR;
+	if(sobj == NULL || prefix == NULL) return ERR_NULL_OBJECT;
 	if(prefix->length > sobj->length) return FALSE;
 
 	plen = prefix->length;
@@ -241,7 +264,7 @@ BOOL str_ends_with(const STRING *sobj, const STRING *suffix)
 {
 	unsigned int i, len, slen;
 
-	if(sobj == NULL || suffix == NULL) return ERR_NULL_STR;
+	if(sobj == NULL || suffix == NULL) return ERR_NULL_OBJECT;
 	if(suffix->length > sobj->length) return FALSE;
 
 	len = sobj->length;
@@ -256,7 +279,7 @@ BOOL str_ends_with(const STRING *sobj, const STRING *suffix)
 STRING* str_to_upper(const STRING *sobj)
 {
 	STRING *sres;
-	int i;
+	unsigned int i;
 	char c;
 
 	sres = exact_copy(sobj);
@@ -276,7 +299,7 @@ STRING* str_to_upper(const STRING *sobj)
 STRING* str_to_lower(const STRING *sobj)
 {
 	STRING *sres;
-	int i;
+	unsigned int i;
 	char c;
 
 	sres = exact_copy(sobj);
@@ -300,7 +323,7 @@ STRING* str_substring(const STRING *sobj, int start, int end)
 	if(end < 0) end += sobj->length;
 
 	/* check bounds */
-	if(start < 0 || end < 0 || end > sobj->length) return ERR_STR_INDEX_OUT_OF_BOUNDS;
+	if(start < 0 || end < 0 || end > sobj->length) return ERR_INDEX_OUT_OF_BOUNDS;
 	if(start >= end) return str_blank();
 
 	return copy(sobj, end - start, 0, start, end, FALSE, NULL, TRUE);
@@ -310,10 +333,10 @@ STRING* str_substring(const STRING *sobj, int start, int end)
 STRING* str_reverse(const STRING *sobj)
 {
 	STRING *sres;
-	int i, n;
+	unsigned int i, n;
 	char c;
 
-	if(sobj == NULL) return ERR_NULL_STR;
+	if(sobj == NULL) return ERR_NULL_OBJECT;
 
 	sres = exact_copy(sobj);
 	if(sres == NULL || sres == ERR_MEM_ALLOC) return sres;
@@ -332,7 +355,7 @@ STRING* str_reverse(const STRING *sobj)
 /* Returns TRUE if all characters in the string are alphanumeric */
 BOOL str_is_alphanumeric(const STRING *sobj)
 {
-	int i;
+	unsigned int i;
 	char c;
 
 	if(sobj == NULL) return FALSE;
@@ -347,7 +370,7 @@ BOOL str_is_alphanumeric(const STRING *sobj)
 /* Returns TRUE if all characters in the string are alphabets */
 BOOL str_is_alpha(const STRING *sobj)
 {
-	int i;
+	unsigned int i;
 	char c;
 
 	if(sobj == NULL) return FALSE;
@@ -362,7 +385,7 @@ BOOL str_is_alpha(const STRING *sobj)
 /* Returns TRUE if all characters in the string are numeric */
 BOOL str_is_decimal(const STRING *sobj)
 {
-	int i;
+	unsigned int i;
 	char c;
 
 	if(sobj == NULL) return FALSE;
@@ -377,7 +400,7 @@ BOOL str_is_decimal(const STRING *sobj)
 /* Returns TRUE if all characters are whitespaces */
 BOOL str_is_whitespace(const STRING *sobj)
 {
-	int i;
+	unsigned int i;
 
 	if(sobj == NULL) return FALSE;
 	for(i = 0; i < sobj->length; ++i)
@@ -390,7 +413,7 @@ BOOL str_is_whitespace(const STRING *sobj)
 /* Returns TRUE if all alphabetic characters are in uppercase */
 BOOL str_is_upper(const STRING *sobj)
 {
-	int i;
+	unsigned int i;
 	char c;
 
 	if(sobj == NULL) return FALSE;
@@ -405,7 +428,7 @@ BOOL str_is_upper(const STRING *sobj)
 /* Returns TRUE if all alphabetic characters are in lowercase */
 BOOL str_is_lower(const STRING *sobj)
 {
-	int i;
+	unsigned int i;
 	char c;
 
 	if(sobj == NULL) return FALSE;
@@ -418,13 +441,13 @@ BOOL str_is_lower(const STRING *sobj)
 }
 
 /* Fills a string with zeroes on the left */
-STRING* str_zfill(const STRING *sobj, int length)
+STRING* str_zfill(const STRING *sobj, unsigned int length)
 {
 	STRING *sres;
 
 	if(sobj == NULL) {
 		char *s;
-		int i;
+		unsigned int i;
 
 		s = (char*)calloc(length + 1, sizeof(char));
 		if(s == NULL) return ERR_MEM_ALLOC;
@@ -446,10 +469,10 @@ STRING* str_zfill(const STRING *sobj, int length)
 STRING* str_swap_case(const STRING *sobj)
 {
 	STRING *sres;
-	int i;
+	unsigned int i;
 	char c;
 
-	if(sobj == NULL) return ERR_NULL_STR;
+	if(sobj == NULL) return ERR_NULL_OBJECT;
 	sres = exact_copy(sobj);
 	if(sres == ERR_MEM_ALLOC) return sres;
 
@@ -470,10 +493,10 @@ STRING* str_swap_case(const STRING *sobj)
 STRING* str_title(const STRING *sobj)
 {
 	STRING *sres;
-	int i;
+	unsigned int i;
 	char c;
 
-	if(sobj == NULL) return ERR_NULL_STR;
+	if(sobj == NULL) return ERR_NULL_OBJECT;
 	sres = exact_copy(sobj);
 	if(sres == ERR_MEM_ALLOC) return sres;
 
@@ -489,13 +512,13 @@ STRING* str_title(const STRING *sobj)
 }
 
 /* Replaces each tab with spaces */
-STRING* str_expand_tabs(const STRING *sobj, int tab_size)
+STRING* str_expand_tabs(const STRING *sobj, unsigned int tab_size)
 {
 	STRING *sres;
-	int i, j, k, tab_count;
+	unsigned int i, j, k, tab_count;
 	char *s;
 	
-	if(sobj == NULL) return ERR_NULL_STR;
+	if(sobj == NULL) return ERR_NULL_OBJECT;
 
 	tab_count = 0;
 	for(i = 0; i < sobj->length; ++i)
@@ -523,7 +546,7 @@ STRING* str_expand_tabs(const STRING *sobj, int tab_size)
 void str_append(STRING *sobj, const STRING *suffix)
 {
 	STRING *sres;
-	int i;
+	unsigned int i;
 
 	if(sobj == NULL || suffix == NULL) return;
 	
@@ -542,14 +565,14 @@ void str_append(STRING *sobj, const STRING *suffix)
 void str_insert(STRING *sobj, int index, const STRING *ins_str)
 {
 	STRING *sres;
-	int i;
+	unsigned int i;
 
-	if(sobj == NULL || ins_str) return ERR_NULL_STR;
+	if(sobj == NULL || ins_str) return ERR_NULL_OBJECT;
 
 	/* convert negative to positive index */
 	if(index < 0) index += sobj->length;
 
-	if(index > sobj->length) return ERR_STR_INDEX_OUT_OF_BOUNDS;
+	if(index > sobj->length) return ERR_INDEX_OUT_OF_BOUNDS;
 	if(index == sobj->length) {
 		str_append(sobj, ins_str);
 		return;
@@ -569,7 +592,7 @@ void str_insert(STRING *sobj, int index, const STRING *ins_str)
 /* replaces a part of a string with another string */
 void str_replace_part(STRING *sobj, int start, int end, const STRING *ins_str)
 {
-	int i;
+	unsigned int i;
 
 	if(sobj == NULL) return;
 
@@ -587,12 +610,12 @@ void str_replace_part(STRING *sobj, int start, int end, const STRING *ins_str)
 }
 
 /* justifies a string to the center within a certain width, pads with pad_char; more padding on right if padding is not evenly divisible  */
-STRING* str_center(const STRING *sobj, int length, char pad_char)
+STRING* str_center(const STRING *sobj, unsigned int length, char pad_char)
 {
 	STRING *sres;
-	int i, left_pad_length;
+	unsigned int i, left_pad_length;
 
-	if(sobj == NULL) return ERR_NULL_STR;
+	if(sobj == NULL) return ERR_NULL_OBJECT;
 	if(sobj->length >= length) return exact_copy(sobj);
 
 	left_pad_length = (length - sobj->length) / 2;
@@ -606,12 +629,12 @@ STRING* str_center(const STRING *sobj, int length, char pad_char)
 }
 
 /* justifies a string to the left within a certain width, pads with pad_char */
-STRING* str_ljust(const STRING *sobj, int length, char pad_char)
+STRING* str_ljust(const STRING *sobj, unsigned int length, char pad_char)
 {
 	STRING *sres;
-	int i, right_pad_length;
+	unsigned int i, right_pad_length;
 
-	if(sobj == NULL) return ERR_NULL_STR;
+	if(sobj == NULL) return ERR_NULL_OBJECT;
 	if(sobj->length >= length) return exact_copy(sobj);
 
 	right_pad_length = length - sobj->length;
@@ -625,12 +648,12 @@ STRING* str_ljust(const STRING *sobj, int length, char pad_char)
 }
 
 /* justifies a string to the right within a certain width, pads with pad_char */
-STRING* str_rjust(const STRING *sobj, int length, char pad_char)
+STRING* str_rjust(const STRING *sobj, unsigned int length, char pad_char)
 {
 	STRING *sres;
-	int i, left_pad_length;
+	unsigned int i, left_pad_length;
 
-	if(sobj == NULL) return ERR_NULL_STR;
+	if(sobj == NULL) return ERR_NULL_OBJECT;
 	if(sobj->length >= length) return exact_copy(sobj);
 
 	left_pad_length = length - sobj->length;
@@ -640,10 +663,10 @@ STRING* str_rjust(const STRING *sobj, int length, char pad_char)
 }
 
 /* chops off certain number of characters from the left and right */
-STRING* str_chop(const STRING *sobj, int num_chars_left, int num_chars_right)
+STRING* str_chop(const STRING *sobj, unsigned int num_chars_left, unsigned int num_chars_right)
 {
-	if(sobj == NULL) return ERR_NULL_STR;
-	if(num_chars_left < 0 || num_chars_right < 0 || num_chars_left + num_chars_right > sobj->length) return ERR_STR_INDEX_OUT_OF_BOUNDS;
+	if(sobj == NULL) return ERR_NULL_OBJECT;
+	if(num_chars_left + num_chars_right > sobj->length) return ERR_INDEX_OUT_OF_BOUNDS;
 
 	if(num_chars_left + num_chars_right == sobj->length) return str_blank();
 	return str_substring(sobj, num_chars_left, -num_chars_right);
@@ -652,16 +675,16 @@ STRING* str_chop(const STRING *sobj, int num_chars_left, int num_chars_right)
 /* checks if a string is blank / empty */
 BOOL str_is_empty(const STRING *sobj)
 {
-	if(sobj == NULL) return ERR_NULL_STR;
+	if(sobj == NULL) return ERR_NULL_OBJECT;
 	return sobj->length == 0 ? TRUE : FALSE;
 }
 
 /* removes any leading / trailing whitespaces from a string */
 STRING* str_strip(const STRING *sobj)
 {
-	int start, end;
+	unsigned int start, end;
 
-	if(sobj == NULL) return ERR_NULL_STR;
+	if(sobj == NULL) return ERR_NULL_OBJECT;
 	
 	for(start = 0; start < sobj->length && is_char_in(sobj->data[start], WHITESPACE); ++start);
 	for(end = sobj->length; end > 0 && is_char_in(sobj->data[end-1], WHITESPACE); --end);
@@ -673,9 +696,9 @@ STRING* str_strip(const STRING *sobj)
 /* removes any leading whitespaces from a string */
 STRING* str_lstrip(const STRING *sobj)
 {
-	int start;
+	unsigned int start;
 
-	if(sobj == NULL) return ERR_NULL_STR;
+	if(sobj == NULL) return ERR_NULL_OBJECT;
 	
 	for(start = 0; start < sobj->length && is_char_in(sobj->data[start], WHITESPACE); ++start);
 
@@ -686,9 +709,9 @@ STRING* str_lstrip(const STRING *sobj)
 /* removes any trailing whitespaces from a string */
 STRING* str_rstrip(const STRING *sobj)
 {
-	int end;
+	unsigned int end;
 
-	if(sobj == NULL) return ERR_NULL_STR;
+	if(sobj == NULL) return ERR_NULL_OBJECT;
 	
 	for(end = sobj->length; end > 0 && is_char_in(sobj->data[end-1], WHITESPACE); --end);
 
@@ -699,28 +722,28 @@ STRING* str_rstrip(const STRING *sobj)
 /* checks if two strings are equal or not */
 BOOL str_equals(const STRING *sobj1, const STRING *sobj2)
 {
-	if(sobj1 == NULL || sobj2 == NULL) return ERR_NULL_STR;
+	if(sobj1 == NULL || sobj2 == NULL) return ERR_NULL_OBJECT;
 	return strcmp(sobj1->data, sobj2->data) == 0 ? TRUE : FALSE;
 }
 
 /* checks if two strings are equal or not ignoring case */
 BOOL str_equals_ignore_case(const STRING *sobj1, const STRING *sobj2)
 {
-	if(sobj1 == NULL || sobj2 == NULL) return ERR_NULL_STR;
+	if(sobj1 == NULL || sobj2 == NULL) return ERR_NULL_OBJECT;
 	return strcmpi(sobj1->data, sobj2->data) == 0 ? TRUE : FALSE;
 }
 
 /* compares two strings */
 int str_compare(const STRING *sobj1, const STRING *sobj2)
 {
-	if(sobj1 == NULL || sobj2 == NULL) return ERR_NULL_STR;
+	if(sobj1 == NULL || sobj2 == NULL) return ERR_NULL_OBJECT;
 	return strcmp(sobj1->data, sobj2->data);
 }
 
 /* comparing two strings by ignoring case */
 int str_compare_ignore_case(const STRING *sobj1, const STRING *sobj2)
 {
-	if(sobj1 == NULL || sobj2 == NULL) return ERR_NULL_STR;
+	if(sobj1 == NULL || sobj2 == NULL) return ERR_NULL_OBJECT;
 	return strcmpi(sobj1->data, sobj2->data);
 }
 
@@ -728,7 +751,7 @@ int str_compare_ignore_case(const STRING *sobj1, const STRING *sobj2)
 int str_count(const STRING *sobj, const STRING *match)
 {
 	regmatch_t *match_ptr;
-	if(sobj == NULL || match == NULL) return ERR_NULL_STR;
+	if(sobj == NULL || match == NULL) return ERR_NULL_OBJECT;
 	
 	return regex_match(sobj->data, match->data, sobj->length, match_ptr);
 }
@@ -739,7 +762,7 @@ int str_find(const STRING *sobj, const STRING *match)
 	int num_matches;
 	regmatch_t *match_ptr;
 
-	if(sobj == NULL || match == NULL) return ERR_NULL_STR;
+	if(sobj == NULL || match == NULL) return ERR_NULL_OBJECT;
 	num_matches = regex_match(sobj->data, match->data, sobj->length, match_ptr);
 	
 	if(num_matches < 0) 
@@ -753,11 +776,12 @@ int str_find(const STRING *sobj, const STRING *match)
 /* finds indices of all occurrences of a string within another string */
 int str_find_all(const STRING *sobj, const STRING *match, unsigned int *indices)
 {
-	int num_matches, i;
+	int num_matches;
+	unsigned int i;
 	regmatch_t *match_ptr;
 
 	indices = NULL;
-	if(sobj == NULL || match == NULL) return ERR_NULL_STR;
+	if(sobj == NULL || match == NULL) return ERR_NULL_OBJECT;
 	num_matches = regex_match(sobj->data, match->data, sobj->length, match_ptr);
 	
 	if(num_matches > 0) {
@@ -774,7 +798,7 @@ int str_find_within(const STRING *sobj, const STRING *match, int start, int end)
 	int num_matches;
 	regmatch_t *match_ptr;
 
-	if(sobj == NULL || match == NULL) return ERR_NULL_STR;
+	if(sobj == NULL || match == NULL) return ERR_NULL_OBJECT;
 	num_matches = regex_match(partial_strcpy(sobj->data, start, end), match->data, sobj->length, match_ptr);
 	
 	if(num_matches < 0) 
@@ -791,7 +815,7 @@ int str_rfind(const STRING *sobj, const STRING *match)
 	int num_matches;
 	regmatch_t *match_ptr;
 
-	if(sobj == NULL || match == NULL) return ERR_NULL_STR;
+	if(sobj == NULL || match == NULL) return ERR_NULL_OBJECT;
 	num_matches = regex_match(sobj->data, match->data, sobj->length, match_ptr);
 	
 	if(num_matches < 0) 
@@ -808,7 +832,7 @@ int str_rfind_within(const STRING *sobj, const STRING *match, int start, int end
 	int num_matches;
 	regmatch_t *match_ptr;
 
-	if(sobj == NULL || match == NULL) return ERR_NULL_STR;
+	if(sobj == NULL || match == NULL) return ERR_NULL_OBJECT;
 	num_matches = regex_match(partial_strcpy(sobj->data, start, end), match->data, sobj->length, match_ptr);
 	
 	if(num_matches < 0) 
@@ -822,11 +846,12 @@ int str_rfind_within(const STRING *sobj, const STRING *match, int start, int end
 /* replaces the first occurrence of a string with another string in a given string */
 STRING* str_replace_first(const STRING *sobj, const STRING *find, const STRING *replace_with)
 {
-	int i, num_matches, start, end, total_length;
+	unsigned int i;
+	int num_matches, start, end, total_length;
 	STRING *sres;
 	regmatch_t *match_ptr;
 
-	if(sobj == NULL || find == NULL || replace_with == NULL) return ERR_NULL_STR;
+	if(sobj == NULL || find == NULL || replace_with == NULL) return ERR_NULL_OBJECT;
 	num_matches = regex_match(sobj->data, find->data, sobj->length, match_ptr);
 	
 	if(num_matches < 0) 
@@ -851,11 +876,12 @@ STRING* str_replace_first(const STRING *sobj, const STRING *find, const STRING *
 /* replaces all occurrences of a string with another string in a given string */
 STRING* str_replace_all(const STRING *sobj, const STRING *find, const STRING *replace_with)
 {
-	int i, j, k, num_matches, start, end, total_matched, total_length, rep_upto;
+	unsigned int i, j, k;
+	int num_matches, start, end, total_matched, total_length, rep_upto;
 	regmatch_t *match_ptr;
 	STRING *sres;
 
-	if(sobj == NULL || find == NULL || replace_with == NULL) return ERR_NULL_STR;
+	if(sobj == NULL || find == NULL || replace_with == NULL) return ERR_NULL_OBJECT;
 	num_matches = regex_match(sobj->data, find->data, sobj->length, match_ptr);
 	
 	if(num_matches < 0) 
@@ -912,7 +938,7 @@ int str_split(const STRING *sobj, const char *delimiter, int max_split, STRING *
 	
 	parts = NULL;
 	if(max_split < 0) return NULL;
-	if(sobj == NULL || delimiter == NULL) return ERR_NULL_STR;
+	if(sobj == NULL || delimiter == NULL) return ERR_NULL_OBJECT;
 	if(sobj->length == 0 || strlen(delimiter) == 0 || max_split == 0) return exact_copy(sobj);
 
 	num_matches = regex_match(sobj->data, delimiter, sobj->length, match_ptr);
@@ -945,3 +971,21 @@ int str_split_whitespace(const STRING *sobj, int max_split, STRING **parts)
 	return str_split(sobj, WHITESPACE_REGEX, max_split, parts);
 }
 
+/* returns a string based on a format string and arguments */
+STRING* str_cfmt(int max_len, const char *format, ...)
+{
+	va_list args;
+	char *data;
+	STRING *result;
+
+	data = (char*)calloc(max_len + 1, sizeof(char));
+	if(data == NULL) return ERR_MEM_ALLOC;
+
+	va_start(args, format);
+	snprintf(data, max_len + 1, format, args);
+	va_end(args);
+
+	result = str(data);
+	free(data);
+	return result;
+}
