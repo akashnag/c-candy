@@ -99,59 +99,59 @@ int stri_pos(const STRING_ITERATOR *s);
  * stri_move_next() -	Shifts the marker one character to the right
  * @s:					the iterator object
  *
- * Returns the marker position after the shift
+ * Returns TRUE if the move was successful
  */
-int stri_move_next(STRING_ITERATOR *s);
+BOOL stri_move_next(STRING_ITERATOR *s);
 
 /*
  * stri_move_prev() -	Shifts the marker one character to the left
  * @s:					the iterator object
  *
- * Returns the marker position after the shift
+ * Returns TRUE if the move was successful
  */
-int stri_move_prev(STRING_ITERATOR *s);
+BOOL stri_move_prev(STRING_ITERATOR *s);
 
 /*
  * stri_move() -	Shifts the marker certain number of characters to the left/right
  * @s:				the iterator object
  * @num_chars:		the number of characters to move (negative: left, positive: right)
  *
- * Returns the marker position after the shift
+ * Returns TRUE if the move was successful
  */
-int stri_move(STRING_ITERATOR *s, int num_chars);
+BOOL stri_move(STRING_ITERATOR *s, int num_chars);
 
 /*
  * stri_skip() -	Shifts the marker to jump a certain number of characters to the right
  * @s:				the iterator object
  * @num_chars:		the number of characters to skip while moving right
  *
- * Returns the marker position after the shift
+ * Returns TRUE if the move was successful
  */
-int stri_skip(STRING_ITERATOR *s, unsigned int num_chars);
+BOOL stri_skip(STRING_ITERATOR *s, unsigned int num_chars);
 
 /*
  * stri_reset() -	Brings the marker back to the beginning of the string
  * @s:				the iterator object
  *
- * Returns the marker position after the shift
+ * Returns TRUE if the move was successful
  */
-int stri_reset(STRING_ITERATOR *s);
+BOOL stri_reset(STRING_ITERATOR *s);
 
 /*
  * stri_move_bos() -	(Same as stri_reset) Brings the marker back to the beginning of the string
  * @s:					the iterator object
  *
- * Returns the marker position after the shift
+ * Returns TRUE if the move was successful
  */
-int stri_move_bos(STRING_ITERATOR *s);
+BOOL stri_move_bos(STRING_ITERATOR *s);
 
 /*
  * stri_move_eos() -	Shifts the marker to the end of the string
  * @s:					the iterator object
  *
- * Returns the marker position after the shift
+ * Returns TRUE if the move was successful
  */
-int stri_move_eos(STRING_ITERATOR *s);
+BOOL stri_move_eos(STRING_ITERATOR *s);
 
 /*
  * stri_move_until() -	Shifts the marker till a given character is found

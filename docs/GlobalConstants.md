@@ -13,11 +13,6 @@ This is the documentation page for all constants defined globally by the c-candy
 | Name | Value |
 |-|-|
 | `C_CANDY_VERSION` | `"0.1.0-alpha"` |
-| `ERR_MEM_ALLOC` | `-2` |
-| `ERR_NULL_OBJECT` | `-3` |
-| `ERR_INDEX_OUT_OF_BOUNDS` | `-4` |
-| `ERR_BAD_REGEX` | `-5` |
-| `ERR_TYPE_MISMATCH` | `-6` |
 
 ### Enumerated types
 

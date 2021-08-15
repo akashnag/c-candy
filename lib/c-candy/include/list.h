@@ -30,8 +30,12 @@
 extern "C" {
 #endif
 
-/* other constants */
-#define LIST_SIZE 						sizeof(LIST)
+/* constant declarations */
+#define LIST_CAPACITY_INIT_BUFFER_FACTOR		2
+#define LIST_CAPACITY_INCREASE_LOAD_FACTOR		1
+#define LIST_CAPACITY_INCREASE_FACTOR			2
+#define LIST_CAPACITY_DECREASE_LOAD_FACTOR		0.25
+#define LIST_CAPACITY_DECREASE_FACTOR			0.5
 
 /* definition of LIST */
 typedef struct {
@@ -41,65 +45,61 @@ typedef struct {
 	int capacity;
 } LIST;
 
-/* <--------------------------- function declarations -----------------------------> */
+/* <------------------ function declarations -------------------> */
 
-/* <-------------------- int specific functions --------------------> */
-
-/* TODO: not implemented */
-LIST* list_from_int_array(BOOL deep_copy, const int *array, unsigned int start, unsigned int end);
-
-/* TODO: not implemented */
-int list_insert_int(LIST *list, int index, int item);
-
-/* TODO: not implemented */
-int list_get_int(const LIST *list, int index, int error_value);
-
-/* TODO: not implemented */
-int list_find_int(const LIST *list, int item);
-
-/* TODO: not implemented */
-int list_append_int(LIST *list, int item);
-
-/* TODO: not implemented */
-BOOL list_has_int(const LIST *list, int item);
-
-/* <-------------------- generic functions --------------------> */
-
-/* TODO: not implemented */
+/* frees memory allocated for the list */
 void dump_list(LIST *list);
 
-/* TODO: not implemented */
+/* returns a new copy of a list */
 LIST* list_copy(const LIST *list, BOOL deep_copy);
 
-/* TODO: not implemented */
-LIST* list_new(ITEM_TYPE list_type, unsigned int initial_capacity);
+/* creates a new empty list */
+LIST* list_new(ITEM_TYPE type, unsigned int initial_capacity);
 
-/* TODO: not implemented */
-int list_delete(LIST *list, int index);
+/* deletes the item at the specified index */
+BOOL list_delete(LIST *list, int index);
 
-/* TODO: not implemented */
-LIST* list_sorted(const LIST *list, int (*comparator)(void *item));
-
-/* TODO: not implemented */
+/* reverses a list and returns the new list */
 LIST* list_reversed(const LIST *list);
 
-/* TODO: not implemented */
-void list_sort(LIST *list, int (*comparator)(void *item));
-
-/* TODO: not implemented */
+/* reverses a list in-place */
 void list_reverse(LIST *list);
 
-/* TODO: not implemented */
+/* concatenates two lists and returns the new list */
 LIST* list_join(const LIST *list1, const LIST *list2);
 
-/* TODO: not implemented */
-void list_extend(LIST *list, const LIST *list_to_add);
+/* extends a list in-place */
+BOOL list_extend(LIST *list, const LIST *list_to_add);
 
-/* TODO: not implemented */
+/* returns the length of the list */
 int list_length(const LIST *list);
 
-/* TODO: not implemented */
+/* returns the capacity of the list */
 int list_capacity(const LIST *list);
+
+/* returns the index at which the item was found in the list, or -1 if not found */
+int list_find(const LIST *list, ...);
+
+/* appends an item to the end of the list */
+BOOL list_append(LIST *list, ...);
+
+/* checks if an item exists in the list */
+BOOL list_has_item(const LIST *list, ...);
+
+/* inserts an item at the specified index in the list */
+BOOL list_insert(LIST *list, int index, ...);
+
+/* form a list from the elements passed as arguments */
+LIST* list_from_elements(unsigned int argc, ITEM_TYPE type, ...);
+
+/* returns a sorted shallow-copy of the list */
+LIST* list_sorted(const LIST *list, BOOL reverse, int (*comparator)(void *item));
+
+/* sorts a list in-place */
+void list_sort(LIST *list, BOOL reverse, int (*comparator)(void *item));
+
+/* returns the object at the specified index as an integer */
+ITEM* list_get(const LIST *list, int index);
 
 #ifdef __cplusplus
 }

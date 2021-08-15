@@ -100,9 +100,9 @@ BOOL str_is_char_in(const STRING *sobj, char c);
  * @sobj: 			the string to append to (modified in-place)
  * @suffix: 		the string to append
  *
- * Returns nothing
+ * Returns TRUE if successful
  */
-void str_append(STRING *sobj, const STRING *suffix);
+BOOL str_append(STRING *sobj, const STRING *suffix);
 
 /*
  * str_insert() - 	Inserts a string into the given string at the specified index
@@ -110,9 +110,9 @@ void str_append(STRING *sobj, const STRING *suffix);
  * @index: 			the position to insert at
  * @ins_str: 		the string to insert
  *
- * Returns nothing
+ * Returns TRUE if successful
  */
-void str_insert(STRING *sobj, int index, const STRING *ins_str);
+BOOL str_insert(STRING *sobj, int index, const STRING *ins_str);
 
 /*
  * str_replace_part() -	Replaces a portion of the given string with another string
@@ -121,9 +121,9 @@ void str_insert(STRING *sobj, int index, const STRING *ins_str);
  * @end:				the index to stop replacement at (exclusive)
  * @ins_str:			the string to replace with
  *
- * Returns nothing
+ * Returns TRUE if successful
  */
-void str_replace_part(STRING *sobj, int start, int end, const STRING *ins_str);
+BOOL str_replace_part(STRING *sobj, int start, int end, const STRING *ins_str);
 
 /*
  * str_replace_first() - 	Replaces the first occurrence of a string with another string in the given string

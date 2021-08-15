@@ -1,7 +1,7 @@
 /*
  * SPDX-License-Identifier: GPL-2.0-only
  *
- * c-candy/include/constants.h
+ * c-candy/include/utils.h
  *
  * (C) Copyright 2021 Akash Nag
  *
@@ -20,42 +20,39 @@
  */
 
 /* start of include guard */
-#ifndef CONSTANTS_H
+#ifndef UTILS_H
 
-#define CONSTANTS_H
+#define UTILS_H
+
+#include <constants.h>
+#include <stdarg.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* Version */
-#define C_CANDY_VERSION					"0.1.0-alpha"
+/* <--------------------------- function declarations -----------------------------> */
 
-/* definition of BOOL (boolean) */
-typedef enum {
-	FALSE = 0, TRUE = 1
-} BOOL;
+/*
+ * as_generic() -	Converts a primitive data type to void*
+ * @type:			the type of the primitive variable
+ * @items:			the list of items to iterate over, takes the first one
+ *
+ * Returns a void* pointer to the newly reserved generic pointer
+ */
+void* cc_as_generic(ITEM_TYPE type, va_list items);
 
-/* definition of item type */
-typedef enum {
-	TYPE_CHAR, TYPE_STR, 
-	TYPE_SHORT, TYPE_INT, TYPE_LONG, TYPE_LONG_LONG,
-	TYPE_FLOAT, TYPE_DOUBLE, TYPE_LONG_DOUBLE, TYPE_OBJECT
-} ITEM_TYPE;
+/* TODO: not implemented */
+BOOL cc_generic_equals(ITEM_TYPE type, void *item1, void *item2);
 
-/* definition of item value */
-typedef union {
-	char char_value;
-	short short_value;
-	int int_value;
-	long long_value;
-	long long ll_value;
-	float float_value;
-	double double_value;
-	long double ld_value;
-	void *object;
-} ITEM;
+/* TODO: not implemented */
+void cc_generic_swap(void **list, int index1, int index2);
 
+/* TODO: not implemented */
+void cc_generic_sort(unsigned int length, void **items, BOOL reverse, int (*comparator)(void *item));
+
+/* TODO: not implemented */
+int cc_int_comparator(void *item);
 
 #ifdef __cplusplus
 }

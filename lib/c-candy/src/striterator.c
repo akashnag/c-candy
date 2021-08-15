@@ -41,11 +41,11 @@ STRING_ITERATOR* stri(const STRING *s)
 {
 	STRING_ITERATOR *result;
 
-	if(s == NULL) return ERR_NULL_OBJECT;
-	if(s->length == 0) return ERR_INDEX_OUT_OF_BOUNDS;
+	if(s == NULL) return NULL;
+	if(s->length == 0) return NULL;
 
 	result = (STRING_ITERATOR*)malloc(sizeof(STRING_ITERATOR));
-	if(result == NULL) return ERR_MEM_ALLOC;
+	if(result == NULL) return NULL;
 
 	result->data = str_copy(s);
 	result->marker = 0;
@@ -61,106 +61,106 @@ STRING_ITERATOR* stri_cs(const char *s)
 /* returns the character at the current marker position */
 char stri_this(const STRING_ITERATOR *s)
 {
-	if(s == NULL) return ERR_NULL_OBJECT;
-	if(s->marker == s->data->length) return NULL;
+	if(s == NULL) return -1;
+	if(s->marker == s->data->length) return -1;
 	return s->data->data[s->marker];
 }
 
 /* returns the character to the right of the current marker position */
 char stri_next(const STRING_ITERATOR *s)
 {
-	if(s == NULL) return ERR_NULL_OBJECT;
-	if(s->marker >= s->data->length) return NULL;
+	if(s == NULL) return -1;
+	if(s->marker >= s->data->length) return -1;
 	return s->data->data[s->marker + 1];
 }
 
 /* returns the character to the left of the current marker position */
 char stri_prev(const STRING_ITERATOR *s)
 {
-	if(s == NULL) return ERR_NULL_OBJECT;
-	if(s->marker <= 0) return NULL;
+	if(s == NULL) return -1;
+	if(s->marker <= 0) return -1;
 	return s->data->data[s->marker - 1];
 }
 
 /* returns the current marker position */
 int stri_pos(const STRING_ITERATOR *s)
 {
-	if(s == NULL) return ERR_NULL_OBJECT;
+	if(s == NULL) return -1;
 	return(s->marker == s->data->length ? STRI_EOS : s->marker);
 }
 
 /* moves the marker to a certain number of characters, positive for right, negative for left */
-int stri_move(STRING_ITERATOR *s, int num_chars)
+BOOL stri_move(STRING_ITERATOR *s, int num_chars)
 {
 	int new_pos;
 	
-	if(s == NULL) return ERR_NULL_OBJECT;
+	if(s == NULL) return FALSE;
 
 	new_pos = s->marker + num_chars;
 	if(new_pos < 0) new_pos = 0;
 	if(new_pos > s->data->length) new_pos = s->data->length;
 	s->marker = new_pos;
-	return s->marker;
+	return TRUE;
 }
 
 /* moves the marker 1 character to the right */
-int stri_move_next(STRING_ITERATOR *s)
+BOOL stri_move_next(STRING_ITERATOR *s)
 {
 	return stri_move(s, 1);
 }
 
 /* moves the marker 1 character to the left */
-int stri_move_prev(STRING_ITERATOR *s)
+BOOL stri_move_prev(STRING_ITERATOR *s)
 {
 	return stri_move(s, -1);
 }
 
 /* moves the marker to the right skipping over a certain number of characters */
-int stri_skip(STRING_ITERATOR *s, unsigned int num_chars)
+BOOL stri_skip(STRING_ITERATOR *s, unsigned int num_chars)
 {
 	return stri_move(s, num_chars + 1);
 }
 
 /* moves the marker to the beginning of the string */
-int stri_reset(STRING_ITERATOR *s)
+BOOL stri_reset(STRING_ITERATOR *s)
 {
-	if(s == NULL) return ERR_NULL_OBJECT;
+	if(s == NULL) return FALSE;
 	s->marker = 0;
-	return s->marker;
+	return TRUE;
 }
 
 /* moves the marker to the beginning of the string */
-int stri_move_bos(STRING_ITERATOR *s)
+BOOL stri_move_bos(STRING_ITERATOR *s)
 {
 	return stri_reset(s);
 }
 
 /* moves the marker to the end of the string */
-int stri_move_eos(STRING_ITERATOR *s)
+BOOL stri_move_eos(STRING_ITERATOR *s)
 {
-	if(s == NULL) return ERR_NULL_OBJECT;
+	if(s == NULL) return FALSE;
 	s->marker = s->data->length;
-	return s->marker;
+	return TRUE;
 }
 
 /* return TRUE if the marker is at the end of the string */
 BOOL stri_is_at_eos(const STRING_ITERATOR *s)
 {
-	if(s == NULL) return ERR_NULL_OBJECT;
+	if(s == NULL) return FALSE;
 	return (s->marker == s->data->length ? TRUE : FALSE);
 }
 
 /* return TRUE if the marker is at the beginning of the string */
 BOOL stri_is_at_bos(const STRING_ITERATOR *s)
 {
-	if(s == NULL) return ERR_NULL_OBJECT;
+	if(s == NULL) return FALSE;
 	return (s->marker == 0 ? TRUE : FALSE);
 }
 
 /* return TRUE if the marker is at the given position */
 BOOL stri_is_at(const STRING_ITERATOR *s, int position)
 {
-	if(s == NULL) return ERR_NULL_OBJECT;
+	if(s == NULL) return FALSE;
 	return (s->marker == position ? TRUE : FALSE);
 }
 
@@ -169,9 +169,9 @@ int stri_move_until(STRING_ITERATOR *s, const char *chars, int step)
 {
 	STRING *schars;
 
-	if(s == NULL) return ERR_NULL_OBJECT;
+	if(s == NULL) return -1;
 	schars = str(chars);
-	if(schars == NULL) return ERR_MEM_ALLOC;
+	if(schars == NULL) return -1;
 	
 	while(s->marker < s->data->length && !str_is_char_in(schars, s->data->data[s->marker]))
 		s->marker += step;
@@ -190,9 +190,9 @@ int stri_move_while(STRING_ITERATOR *s, const char *chars, int step)
 {
 	STRING *schars;
 
-	if(s == NULL) return ERR_NULL_OBJECT;
+	if(s == NULL) return -1;
 	schars = str(chars);
-	if(schars == NULL) return ERR_MEM_ALLOC;
+	if(schars == NULL) return -1;
 	
 	while(s->marker < s->data->length && str_is_char_in(schars, s->data->data[s->marker]))
 		s->marker += step;
