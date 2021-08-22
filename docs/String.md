@@ -47,7 +47,7 @@ typedef struct {
 | BOOL | str_starts_with(const STRING *sobj, const STRING *prefix) | Returns TRUE if the string starts with a specified prefix |
 | BOOL | str_ends_with(const STRING *sobj, const STRING *suffix) | Returns TRUE if the string ends with a specified suffix |
 | int | str_find(const STRING *sobj, const STRING *match) | Returns the first index at which a given string is found; or -1 if not found |
-| int str_find_all(const STRING *sobj, const STRING *match, unsigned int *indices) | Returns the number of times a string is found in another string, and puts the indices as an array in the `indices` parameter |
+| int | str_find_all(const STRING *sobj, const STRING *match, unsigned int *indices) | Returns the number of times a string is found in another string, and puts the indices as an array in the `indices` parameter |
 | int | str_find_within(const STRING *sobj, const STRING *match, int start, int end) | Returns the first index at which a string is found within a portion of another string |
 | int | str_rfind(const STRING *sobj, const STRING *match) | Returns the first index (from right) at which a string is found; or -1 if not found |
 | int | str_rfind_within(const STRING *sobj, const STRING *match, int start, int end) | Returns the first index (from right) at which a string is found within a portion of another string |
