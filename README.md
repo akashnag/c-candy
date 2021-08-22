@@ -100,8 +100,7 @@ int main(int argc, char **argv)
 	
 	printf("Longest word = %s\n", cstr(lw));
 	
-	str_dump(s);
-	str_dump(lw);
+	str_dump_multi(s, lw);
 	return 0;
 }
 ```
