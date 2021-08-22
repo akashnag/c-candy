@@ -25,6 +25,7 @@
 #define LIST_H
 
 #include <constants.h>
+#include <utils.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -48,13 +49,13 @@ typedef struct {
 /* <------------------ function declarations -------------------> */
 
 /* frees memory allocated for the list */
-void dump_list(LIST *list);
+void list_dump(LIST *list);
 
 /* returns a new copy of a list */
 LIST* list_copy(const LIST *list, BOOL deep_copy);
 
 /* creates a new empty list */
-LIST* list_new(ITEM_TYPE type, unsigned int initial_capacity);
+LIST* list(ITEM_TYPE type, unsigned int initial_capacity);
 
 /* deletes the item at the specified index */
 BOOL list_delete(LIST *list, int index);
@@ -77,6 +78,9 @@ int list_length(const LIST *list);
 /* returns the capacity of the list */
 int list_capacity(const LIST *list);
 
+/* returns the data type of the list */
+ITEM_TYPE list_type(const LIST *list);
+
 /* returns the index at which the item was found in the list, or -1 if not found */
 int list_find(const LIST *list, ...);
 
@@ -98,8 +102,17 @@ LIST* list_sorted(const LIST *list, BOOL reverse, int (*comparator)(void *item))
 /* sorts a list in-place */
 void list_sort(LIST *list, BOOL reverse, int (*comparator)(void *item));
 
-/* returns the object at the specified index as an integer */
+/* returns the object at the specified index */
 ITEM* list_get(const LIST *list, int index);
+
+/* sets an item at the specified index */
+BOOL list_set(const LIST *list, int index, ...);
+
+/* returns a portion of a list as another list */
+LIST* list_get_sublist(const LIST *list, int start, int end, BOOL deep_copy);
+
+/* returns the elements of the list as an array */
+ITEM** list_to_array(const LIST *list);
 
 #ifdef __cplusplus
 }

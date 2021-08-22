@@ -25,10 +25,11 @@
 #include <regex.h>
 #include <constants.h>
 #include <str.h>
+#include <stdio.h>
 
 /* <------------------ private constant declarations -----------------> */
 static const char *WHITESPACE = " \t\n\r\v\f";
-static const char *WHITESPACE_REGEX = "\s";
+static const char *WHITESPACE_CHAR = " ";
 
 /* <------------------ private function declarations -----------------> */
 static STRING* copy(const STRING *sobj, int length, int dest_start, int src_start, int src_end, BOOL fill_left, char fill_char, BOOL end_with_null);
@@ -108,6 +109,7 @@ static int regex_match(const char *text, const char *exp, int nmatch, regmatch_t
 	count = 0;
 
 	while(match_ptr[++i].rm_so >= 0) count++;
+	
 	return count;
 }
 
@@ -154,13 +156,35 @@ static int strcmpi(const char *s1, const char *s2)
 /* <------------------ public function definitions ------------------> */
 
 /* Frees memory allocated for the string object */
-void dump_str(STRING *sobj)
+void str_dump(STRING *sobj)
 {
 	if(sobj != NULL)
 	{
 		free(sobj->data);
 		free(sobj);
 	}
+}
+
+/* frees memory allocated for multiple string objects */
+void str_dump_multi(int count, ...)
+{
+	va_list args;
+	STRING *temp;
+	int i;
+
+	if(count <= 0) return;
+
+	va_start(args, count);
+	for(i = 0; i < count; ++i)
+	{
+		temp = va_arg(args, STRING*);
+		if(temp != NULL)
+		{
+			free(temp->data);
+			free(temp);
+		}
+	}
+	va_end(args);
 }
 
 /* Creates an empty STRING object */
@@ -179,7 +203,7 @@ STRING* str_blank()
 }
 
 /* Creates a STRING object from a C string literal */
-STRING* str(const char *s)
+STRING* string(const char *s)
 {
 	STRING *sobj;
 	int n;
@@ -926,45 +950,45 @@ STRING* str_replace_all(const STRING *sobj, const STRING *find, const STRING *re
 	}
 }
 
-/* splits a string based on a delimiter (regex) */
-int str_split(const STRING *sobj, const char *delimiter, int max_split, STRING **parts)
+/* splits a string based on a delimiter */
+STRING** str_split(const STRING *sobj, const char *delimiter, int max_split, int *split_count)
 {
-	int num_matches, i, processed_upto;
-	regmatch_t *match_ptr;
+	int num_matches, i, n, last, processed_upto;
+	STRING **parts;
+	char *temp;
 	
-	parts = NULL;
 	if(max_split < 0) return NULL;
-	if(sobj == NULL || delimiter == NULL) return -1;
-	if(sobj->length == 0 || strlen(delimiter) == 0 || max_split == 0) return exact_copy(sobj);
-
-	num_matches = regex_match(sobj->data, delimiter, sobj->length, match_ptr);
+	if(sobj == NULL || delimiter == NULL) return NULL;
 	
-	if(num_matches < 0) 		
-		return -1;
-	else if(num_matches == 0) {
-		parts = (STRING**)calloc(1, sizeof(STRING*));
-		parts[0] = exact_copy(sobj);
-		return 1;
-	} else {
-		num_matches = (num_matches <= max_split) ? num_matches : max_split;
-		parts = (STRING**)calloc(num_matches + 1, sizeof(STRING*));
+	n = strlen(delimiter);
+	*split_count = 0;
+	
+	if(sobj->length == 0 || n == 0 || max_split == 0) return exact_copy(sobj);
+	
+	parts = (STRING**)calloc(max_split, sizeof(STRING*));
+	if(parts == NULL) return NULL;
 		
-		processed_upto = 0;		/* stores last_index_copied + 1 of the original string */
-		for(i = 0; i < num_matches; ++i)
-		{
-			parts[i] = str_substring(sobj, processed_upto, match_ptr[i].rm_so);
-			processed_upto = match_ptr[i].rm_eo;
+	last = 0;
+	for(i = 0; i <= sobj->length - n; ++i)
+	{
+		temp = partial_strcpy(sobj->data, i, i+n);
+		if(!strcmp(temp, delimiter)) {
+			/* split into two parts: last to i-1, and i+n to end */
+			if(i - last > 0) parts[(*split_count)++] = str_substring(sobj, last, i);				
+			last = i+n;
+			i += n - 1;
+			if(*split_count == max_split) return parts;
 		}
-
-		parts[num_matches] = str_substring(sobj, processed_upto, sobj->length);
-		return num_matches + 1;
 	}
+
+	if(last < sobj->length) parts[(*split_count)++] = str_substring(sobj, last, sobj->length);
+	return parts;
 }
 
 /* splits a string based on whitespace characters */
-int str_split_whitespace(const STRING *sobj, int max_split, STRING **parts)
+STRING** str_split_whitespace(const STRING *sobj, int max_split, int *split_count)
 {
-	return str_split(sobj, WHITESPACE_REGEX, max_split, parts);
+	return str_split(sobj, WHITESPACE_CHAR, max_split, split_count);
 }
 
 /* returns a string based on a format string and arguments */
@@ -984,4 +1008,22 @@ STRING* str_cfmt(int max_len, const char *format, ...)
 	result = str(data);
 	free(data);
 	return result;
+}
+
+/* returns the hash code of the given string */
+unsigned long long str_hash(const STRING *sobj)
+{
+	const unsigned int p = 31;
+	const unsigned int m = 1e9 + 9;
+	unsigned long long hash = 0;
+	unsigned long long p_pow = 1;
+	
+	if(sobj == NULL) return 0;
+	for(i = 0; i < sobj->length; ++i)
+	{
+		hash = (hash + (sobj->data[i] + 1) * p_pow) % m;
+		p_pow = (p_pow * p) % m;
+	}
+
+	return hash;
 }

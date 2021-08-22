@@ -23,7 +23,6 @@
 #include <stdarg.h>
 #include <constants.h>
 #include <list.h>
-#include <str.h>
 #include <utils.h>
 
 /* <------------------ private function declarations -----------------> */
@@ -136,7 +135,7 @@ static void* list_at_generic(LIST *list, int index)
 /* <------------------ public function definitions -------------------> */
 
 /* frees memory allocated for the list */
-void dump_list(LIST *list)
+void list_dump(LIST *list)
 {
 	if(list != NULL)
 	{
@@ -154,7 +153,6 @@ LIST* list_copy(const LIST *list, BOOL deep_copy)
 	unsigned int i;
 
 	char item_char;
-	STRING *item_string;
 	short item_short;
 	int item_int;
 	long item_long;
@@ -188,12 +186,6 @@ LIST* list_copy(const LIST *list, BOOL deep_copy)
 			if(temp == NULL) return NULL;
 			*temp = item_char;
 			new_list->data[i] = (void*)temp;
-		}
-
-		if(type == TYPE_STR) {
-			item_string = str_copy((STRING*)generic_item);
-			if(item_string < 0) return NULL;
-			new_list->data[i] = (void*)item_string;
 		}
 
 		if(type == TYPE_SHORT) {
@@ -264,7 +256,7 @@ LIST* list_copy(const LIST *list, BOOL deep_copy)
 }
 
 /* creates a new empty list */
-LIST* list_new(ITEM_TYPE type, unsigned int initial_capacity)
+LIST* list(ITEM_TYPE type, unsigned int initial_capacity)
 {
 	LIST *list;
 
@@ -362,7 +354,7 @@ BOOL list_extend(LIST *list, const LIST *list_to_add)
 	new_list = list_join(list, list_to_add);
 	if(new_list == NULL) return FALSE;
 
-	dump_list(list);
+	list_dump(list);
 	list = new_list;
 	return TRUE;
 }
@@ -379,6 +371,13 @@ int list_capacity(const LIST *list)
 {
 	if(list == NULL) return -1;
 	return list->capacity;
+}
+
+/* returns the data type of the list */
+ITEM_TYPE list_type(const LIST *list)
+{
+	if(list == NULL) return -1;
+	return list->type;
 }
 
 /* returns the index at which the item was found in the list, or -1 if not found */
@@ -504,47 +503,67 @@ ITEM* list_get(const LIST *list, int index)
 
 	if(list == NULL || index < 0 || index >= list->length) return NULL;
 
-	item = (ITEM*)malloc(sizeof(ITEM));
-	if(item == NULL) return NULL;
-
 	p = list_at_generic(list, index);
-
-	if(list->type == TYPE_STR || list->type == TYPE_OBJECT) {
-		item->object = p;
-	} else if(list->type == TYPE_CHAR) {
-		char *v;
-		v = (char*)p;
-		item->char_value = *v;
-	} else if(list->type == TYPE_SHORT) {
-		short *v;
-		v = (short*)p;
-		item->short_value = *v;
-	} else if(list->type == TYPE_INT) {
-		int *v;
-		v = (int*)p;
-		item->int_value = *v;
-	} else if(list->type == TYPE_LONG) {
-		long *v;
-		v = (long*)p;
-		item->long_value = *v;
-	} else if(list->type == TYPE_FLOAT) {
-		float *v;
-		v = (float*)p;
-		item->float_value = *v;
-	} else if(list->type == TYPE_DOUBLE) {
-		double *v;
-		v = (double*)p;
-		item->double_value = *v;
-	} else if(list->type == TYPE_LONG_LONG) {
-		long long *v;
-		v = (long long*)p;
-		item->ll_value = *v;
-	} else if(list->type == TYPE_LONG_DOUBLE) {
-		long double *v;
-		v = (long double*)p;
-		item->ld_value = *v;
-	}
-
-	return item;
+	return cc_create_item(list->type, p);
 }
 
+/* sets an item at the specified index */
+BOOL list_set(const LIST *list, int index, ...)
+{
+	va_list args;
+	void *item;
+	BOOL ret_val;
+
+	if(list == NULL) return FALSE;
+	if(index < 0) index += list->length;
+	if(index < 0 || index >= list->length) return FALSE;
+	
+	va_start(args, index);
+	
+	item = cc_as_generic(list->type, args);
+	list->data[index] = item;
+
+	va_end(args);
+	return TRUE;
+}
+
+/* returns a portion of a list as another list */
+LIST* list_get_sublist(const LIST *list, int start, int end, BOOL deep_copy)
+{
+	LIST *sublist, *result;
+	unsigned int i;
+
+	if(list == NULL) return NULL;
+
+	if(start < 0) start += list->length;
+	if(end < 0) end += list->length;
+
+	if(start < 0 || start >= list->length) return NULL;
+	if(end < 0 || end > list->length) return NULL;
+	if(start > end) return NULL;
+
+	sublist = list_new(list->type, (end - start + 1) * LIST_CAPACITY_INIT_BUFFER_FACTOR);
+	if(start == end) return sublist;
+
+	for(i = start; i < end; ++i) sublist->data[i-start] = list->data[i];
+	sublist->length = (end - start + 1);
+
+	result = list_copy(sublist, deep_copy);
+	list_dump(sublist);
+	return result;
+}
+
+/* returns the elements of the list as an array */
+ITEM** list_to_array(const LIST *list)
+{
+	ITEM **items;
+	unsigned int i;
+
+	if(list == NULL) return NULL;
+	if(list->length == 0) return NULL;
+
+	items = (ITEM**)calloc(list->length, sizeof(ITEM*));
+	for(i = 0; i < list->length; ++i) items[i] = cc_create_item(list->type, list->data[i]);
+
+	return items;
+}

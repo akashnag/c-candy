@@ -42,10 +42,17 @@ typedef struct {
 /* <------------------------------ function declarations --------------------------------> */
 
 /*
- * dump_str() -	Frees memory allocated for the string object
+ * str_dump() -	Frees memory allocated for the string object
  * @sobj:		the string to free
  */
-void dump_str(STRING *sobj);
+void str_dump(STRING *sobj);
+
+/*
+ * str_dump_multi() -	Frees memory allocated for multiple string objects
+ * @count:				the number of string objects passed
+ * ...					pointers to string objects
+ */
+void str_dump_multi(int count, ...);
 
 /*
  * str_blank() - Creates a blank string
@@ -55,12 +62,12 @@ void dump_str(STRING *sobj);
 STRING* str_blank();
 
 /*
- * str() - 	Converts a string literal to a STRING object
- * @s: 		string literal to convert
+ * string() - 	Converts a string literal to a STRING object
+ * @s: 			string literal to convert
  *
  * Returns a pointer to a STRING object
  */
-STRING* str(const char *s);
+STRING* string(const char *s);
 
 /*
  * str_copy() -	Returns a copy of the given string
@@ -391,21 +398,21 @@ STRING* str_to_lower(const STRING *sobj);
  * @sobj:			the string to split
  * @delimiter:		the string to be used as delimiter
  * @max_split:		the maximum number of splits to make, use -1 to get all splits
- * @parts:			pointer to an array of strings where the resultant parts will be stored
+ * @split_count:	pointer to an integer where the actual number of splits is stored
  *
- * Returns the number of splits actually made
+ * Returns the sub strings after splitting
  */
-int str_split(const STRING *sobj, const char *delimiter, int max_split, STRING **parts);
+STRING** str_split(const STRING *sobj, const char *delimiter, int max_split, int *split_count);
 
 /*
  * str_split_whitespace() -	Splits a string into a number of parts using any whitespace as delimiter
  * @sobj:					the string to split
  * @max_split:				the maximum number of splits to make, use -1 to get all splits
- * @parts:					pointer to an array of strings where the resultant parts will be stored
+ * @split_count:			pointer to an integer where the actual number of splits is stored
  *
- * Returns the number of splits actually made
+ * Returns the sub strings after splitting
  */
-int str_split_whitespace(const STRING *sobj, int max_split, STRING **parts);
+STRING** str_split_whitespace(const STRING *sobj, int max_split, int *split_count);
 
 /* 
  * zfill() -	Pads a string with zeroes on the left
@@ -484,6 +491,14 @@ int str_compare_ignore_case(const STRING *sobj1, const STRING *sobj2);
  * Returns TRUE if the string has zero length, else returns FALSE
  */
 BOOL str_is_empty(const STRING *sobj);
+
+/*
+ * str_hash() -	Returns the hash code of the given string object
+ * #sobj:		the string to compute the hash for
+ *
+ * Returns the hash code
+ */
+unsigned long long str_hash(const STRING *sobj);
 
 #ifdef __cplusplus
 }

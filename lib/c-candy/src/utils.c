@@ -22,16 +22,98 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <constants.h>
-#include <list.h>
-#include <str.h>
 #include <utils.h>
+
+/* frees memory allocated for singly-linked node */
+void dump_sl_node(SL_NODE *node, BOOL recursive)
+{
+	if(node == NULL) return;
+	free(node->data);
+	if(recursive) dump_sl_node(node->next, TRUE);
+	free(node);
+}
+
+/* frees memory allocated for doubly-linked node */
+void dump_dl_node(DL_NODE *node, BOOL recursive)
+{
+	if(node == NULL) return;
+	free(node->data);
+	
+	if(node->next != NULL && recursive) dump_dl_node(node->next, TRUE);
+	if(node->prev != NULL && recursive) dump_dl_node(node->prev, TRUE);
+
+	free(node);
+}
+
+/* frees memory allocated for multi-linked node */
+void dump_ml_node(ML_NODE *node, BOOL recursive)
+{
+	unsigned int i;
+	
+	if(node == NULL) return;
+	free(node->data);
+	
+	for(i = 0; i < node->child_count; ++i)
+	{
+		if(node->child[i] != NULL && recursive) dump_ml_node(node->child[i], TRUE);
+	}
+
+	free(node->child);
+	free(node);
+}
+
+ITEM* cc_create_item(ITEM_TYPE type, void *p)
+{
+	ITEM *item;
+
+	item = (ITEM*)malloc(sizeof(ITEM));
+	if(item == NULL) return NULL;
+
+	if(type == TYPE_OBJECT) {
+		item->object = p;
+	} else if(type == TYPE_CHAR) {
+		char *v;
+		v = (char*)p;
+		item->char_value = *v;
+	} else if(type == TYPE_SHORT) {
+		short *v;
+		v = (short*)p;
+		item->short_value = *v;
+	} else if(type == TYPE_INT) {
+		int *v;
+		v = (int*)p;
+		item->int_value = *v;
+	} else if(type == TYPE_LONG) {
+		long *v;
+		v = (long*)p;
+		item->long_value = *v;
+	} else if(type == TYPE_FLOAT) {
+		float *v;
+		v = (float*)p;
+		item->float_value = *v;
+	} else if(type == TYPE_DOUBLE) {
+		double *v;
+		v = (double*)p;
+		item->double_value = *v;
+	} else if(type == TYPE_LONG_LONG) {
+		long long *v;
+		v = (long long*)p;
+		item->ll_value = *v;
+	} else if(type == TYPE_LONG_DOUBLE) {
+		long double *v;
+		v = (long double*)p;
+		item->ld_value = *v;
+	}
+
+	return item;
+}
 
 /* converts a primitive type to void* pointer */
 void* cc_as_generic(ITEM_TYPE type, va_list items)
 {
 	void *gen_p;
 
-	if(type == TYPE_STR || type == TYPE_OBJECT) {
+	if(type == TYPE_OBJECT) {
 		gen_p = va_arg(items, void*);
 	} else if(type == TYPE_CHAR) {
 		char item = va_arg(items, char);
@@ -87,11 +169,6 @@ BOOL cc_generic_equals(ITEM_TYPE type, void *item1, void *item2)
 
 	if(type == TYPE_OBJECT) {
 		return (item1 == item2 ? TRUE : FALSE);
-	} else if(type == TYPE_STR) {
-		STRING *v1, *v2;
-		v1 = (STRING*)item1;
-		v2 = (STRING*)item2;
-		return str_equals(v1, v2);
 	} else if(type == TYPE_CHAR) {
 		char *v1, *v2;
 		v1 = (char*)item1;
@@ -147,22 +224,30 @@ void cc_generic_swap(void **list, int index1, int index2)
 	list[index2] = temp;
 }
 
+/* sorts a list */
+/* TODO: replace with quicksort */
 void cc_generic_sort(unsigned int length, void **items, BOOL reverse, int (*comparator)(void *item))
 {
 	unsigned int i, j;
 	int comp_val1, comp_val2;
 	void *temp;
+	BOOL flag;
 
 	for(i = 0; i < length; ++i)
 	{
+		flag = FALSE;
 		for(j = 0; j < length - i - 1; ++j)
 		{
 			comp_val1 = comparator(items[j]);
 			comp_val2 = comparator(items[j+1]);
 
 			if((reverse && comp_val2 > comp_val1) || (!reverse && comp_val1 > comp_val2))
+			{
 				cc_generic_swap(items, j, j+1);
+				flag = TRUE;
+			}
 		}
+		if(!flag) return;
 	}
 }
 
@@ -171,4 +256,18 @@ int cc_int_comparator(void *item)
 	int *vp;
 	vp = (int*)item;
 	return *vp;
+}
+
+int cc_short_comparator(void *item)
+{
+	short *vp;
+	vp = (short*)item;
+	return (int)(*vp);
+}
+
+int cc_char_comparator(void *item)
+{
+	char *vp;
+	vp = (char*)item;
+	return (int)(*vp);
 }

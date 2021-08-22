@@ -1,7 +1,7 @@
 /*
  * SPDX-License-Identifier: GPL-2.0-only
  *
- * c-candy/include/constants.h
+ * c-candy/include/tuple.h
  *
  * (C) Copyright 2021 Akash Nag
  *
@@ -20,27 +20,40 @@
  */
 
 /* start of include guard */
-#ifndef CONSTANTS_H
+#ifndef TUPLE_H
 
-#define CONSTANTS_H
+#define TUPLE_H
+
+#include <constants.h>
+#include <utils.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* Version */
-#define C_CANDY_VERSION					"0.1.0-alpha"
+/* definition of LIST */
+typedef struct {
+	ITEM_TYPE *types;
+	void **data;
+	int length;
+} TUPLE;
 
-/* definition of BOOL (boolean) */
-typedef enum {
-	FALSE = 0, TRUE = 1
-} BOOL;
+/* <------------------ function declarations -------------------> */
 
-/* definition of item type */
-typedef enum {
-	TYPE_CHAR, TYPE_SHORT, TYPE_INT, TYPE_LONG, TYPE_LONG_LONG,
-	TYPE_FLOAT, TYPE_DOUBLE, TYPE_LONG_DOUBLE, TYPE_OBJECT
-} ITEM_TYPE;
+/* frees memory allocated for the tuple */
+void tuple_dump(TUPLE *tuple);
+
+/* returns the length of the tuple */
+int tuple_length(const TUPLE *tuple);
+
+/* returns the data type of the item at the specified index */
+ITEM_TYPE tuple_type_at(const TUPLE *tuple, int index);
+
+/* returns the item at the specified index */
+ITEM* tuple_at(const TUPLE *tuple, int index);
+
+/* creates a new empty tuple */
+TUPLE* tuple(int count, ...);
 
 #ifdef __cplusplus
 }

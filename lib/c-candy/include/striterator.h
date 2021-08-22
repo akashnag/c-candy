@@ -30,8 +30,8 @@
 extern "C" {
 #endif
 
-#define STRI_BOS				  0
-#define STRI_EOS				-10
+#define STRI_BOS				 0
+#define STRI_EOS				-1
 
 /* definition of STRING_ITERATOR object */
 typedef struct {
@@ -42,10 +42,10 @@ typedef struct {
 /* <------------------------------ function declarations --------------------------------> */
 
 /*
- * dump_str_iterator() -	Frees memory allocated for the iterator
- * @s:						the iterator object to free
+ * stri_dump() -	Frees memory allocated for the iterator
+ * @s:				the iterator object to free
  */
-void dump_str_iterator(STRING_ITERATOR *s);
+void stri_dump(STRING_ITERATOR *s);
 
 /*
  * stri_cs() -	Creates an iterator over a C-style string

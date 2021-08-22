@@ -27,11 +27,11 @@
 /* <----------------------- public function definitions -------------------------> */
 
 /* frees memory allocated for the string iterator object */
-void dump_str_iterator(STRING_ITERATOR *s)
+void stri_dump(STRING_ITERATOR *s)
 {
 	if(s != NULL)
 	{
-		dump_str(s->data);
+		str_dump(s->data);
 		free(s);
 	}
 }
